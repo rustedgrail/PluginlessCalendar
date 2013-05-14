@@ -4,13 +4,9 @@
     var month_days = [31,28,31,30,31,30,31,31,30,31,30,31];
 
     window.Calendar = function(id) {
-        var today = new Date();
         var div = document.createElement('div');
-        var linkedElement;
-        var selectCallback;
-        var currentMonth;
-        var currentyear;
-        var selectedDate;
+        var selectedCallback = defaultSelectDate;
+        var linkedElement, selectedDate;
         var events = {
             previousMonth: previousMonth
             , nextMonth: nextMonth
@@ -29,14 +25,19 @@
             , hideCalendar: hideCalendar
             , div: div
             , events: events
+            , setCallback: setCallback
         };
+
+        function setCallback(callback) {
+            selectedCallback = callback;
+        }
 
         function showCalendar(input, minDate, maxDate) {
             if (input) {
                 linkedElement = input;
                 var xy = getPosition(input);
                 var width = parseInt(getStyle(input,'width'), 10);
-                //Position the div in the correct location...
+                //Position the div in the correct location
                 div.style.left=(xy[0]+width+10)+"px";
                 div.style.top=xy[1]+"px";
                 var date_in_input = input.value;
@@ -58,7 +59,7 @@
 
             var the_year = existing_date.getYear();
             if(the_year < 1900) the_year += 1900;
-            var calendarText = makeCalendar(the_year, existing_date.getMonth(), existing_date.getDate(), minDate);
+            var calendarText = makeCalendar(the_year, existing_date.getMonth(), existing_date.getDate(), minDate, maxDate);
             div.innerHTML = calendarText;
             div.style.display = "block";
         }
@@ -103,11 +104,9 @@
             return value;
         }
 
-        function makeCalendar(year, month, day, minDate, callback) {
+        function makeCalendar(year, month, day, minDate, maxDate) {
+            var today = new Date();
             var weekday, i, j, data = [];
-            if (typeof callback === 'function') {
-                selectCallback = callback;
-            }
             year = parseInt(year, 10);
             month= parseInt(month, 10);
             day  = parseInt(day, 10);
@@ -210,12 +209,15 @@
             return data.join('');
         }
 
-
-        // Called when the user clicks on a date in the calendar.
         function selectDate(target) {
             selectedDate.day = target.getAttribute('data-date');
+            selectedCallback(selectedDate);
+        }
+
+        // Called when the user clicks on a date in the calendar.
+        function defaultSelectDate(selectedDate) {
             if (linkedElement) {
-                linkedElement.value = selectedDate.year + "-" + (selectedDate.month + 1) + "-" + selectedDate.day; // Date format is :HARDCODE:
+                linkedElement.value = selectedDate.year + "-" + (selectedDate.month + 1) + "-" + selectedDate.day;
             }
             hideCalendar();
         }
