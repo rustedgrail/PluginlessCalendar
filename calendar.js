@@ -1,54 +1,49 @@
 (function() {
-    var calendars = [];
+    var month_names = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    var weekdays = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+    var month_days = [31,28,31,30,31,30,31,31,30,31,30,31];
 
     window.Calendar = function(id) {
-        var month_names = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-        var weekdays = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-        var month_days = [31,28,31,30,31,30,31,31,30,31,30,31];
         var today = new Date();
         var div = document.createElement('div');
-        var opt = { };
+        var linkedElement;
         var selectCallback;
-        var index = calendars.length;
         var currentMonth;
         var currentyear;
         var selectedDate;
         var events = {
             previousMonth: previousMonth
             , nextMonth: nextMonth
+            , selectDate: selectDate
+            , hideCalendar: hideCalendar
         };
 
         if (id) { div.id = id; }
         div.className="calendar-box";
 
         document.body.insertBefore(div, null);
-
-        calendars.push({
-            showCalendar: showCalendar
-            , hideCalendar: hideCalendar
-        });
-
         div.addEventListener('click', handleEvents);
 
-        return calendars[index];
+        return {
+            showCalendar: showCalendar
+            , hideCalendar: hideCalendar
+            , div: div
+            , events: events
+        };
 
         function showCalendar(input, minDate, maxDate) {
             if (input) {
-                opt.input = input;
+                linkedElement = input;
+                var xy = getPosition(input);
+                var width = parseInt(getStyle(input,'width'), 10);
+                //Position the div in the correct location...
+                div.style.left=(xy[0]+width+10)+"px";
+                div.style.top=xy[1]+"px";
+                var date_in_input = input.value;
             }
-            else {
-                input = document.getElementById(opt.input);
-            }
-
-            //Position the div in the correct location...
-            var xy = getPosition(input);
-            var width = parseInt(getStyle(input,'width'), 10);
-            div.style.left=(xy[0]+width+10)+"px";
-            div.style.top=xy[1]+"px";
 
             // Show the calendar with the date in the input as the selected date
             var existing_date = new Date();
-            var date_in_input = input.value;
             if(date_in_input) {
                 var selected_date = false;
                 var date_parts = date_in_input.split("-");
@@ -197,7 +192,7 @@
 
                         data.push("<td class='days"+class_name+"'>");
                         if (!minDate || greaterThanMinMonth || w > minDate.getDate()) {
-                            data.push("<a href='javascript:calendar.selectCallback(\""+year+"\",\""+mon+"\",\""+w+"\")'>"+w+"</a></td>");
+                            data.push("<a data-event=selectDate data-date='" + w + "'>"+w+"</a></td>");
                         }
                         else {
                             data.push("<span>"+w+"</span></td>");
@@ -210,22 +205,19 @@
                 data.push("</tr>");
             }
             data.push("</table>");
-            data.push("<div class='calendar-cancel' onclick='calendar.hideCalendar();'><a>Cancel</a></div>");
+            data.push("<div class='calendar-cancel' data-event=hideCalendar>Cancel</div>");
 
             return data.join('');
         }
 
 
         // Called when the user clicks on a date in the calendar.
-        function selectDate(year,month,day) {
-            var ths = _calendar_active_instance;
-            if (typeof this.opt.input === 'string') {
-                document.getElementById(ths.opt.input).value = year + "-" + month + "-" + day; // Date format is :HARDCODE:
+        function selectDate(target) {
+            selectedDate.day = target.getAttribute('data-date');
+            if (linkedElement) {
+                linkedElement.value = selectedDate.year + "-" + (selectedDate.month + 1) + "-" + selectedDate.day; // Date format is :HARDCODE:
             }
-            else {
-                ths.opt.input.value = year + "-" + month + "-" + day; // Date format is :HARDCODE:
-            }
-            ths.hideCalendar();
+            hideCalendar();
         }
 
         function updateCalendar(year, month, day, minDate) {
@@ -250,7 +242,7 @@
         function handleEvents(e) {
             var target = e.target;
             var event = target.getAttribute('data-event');
-            events[event]();
+            events[event](target);
         }
 
         function previousMonth() {

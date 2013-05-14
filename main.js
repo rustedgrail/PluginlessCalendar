@@ -1,5 +1,5 @@
 (function() {
-    var calendar = new Calendar('calendar');
+    window.calendar = new Calendar('calendar');
     var input = document.getElementById('calendar');
-    calendar.showCalendar(input);
+    window.calendar.showCalendar(input);
 }());
