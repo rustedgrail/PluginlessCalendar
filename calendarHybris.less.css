@@ -1,0 +1,93 @@
+/*Mixins*/
+.border-radius (@radius: 5px 5px 5px 5px) {
+    -webkit-border-radius: @radius;
+    -moz-border-radius: @radius;
+    -ms-border-radius: @radius;
+    -o-border-radius: @radius;
+    border-radius: @radius;
+}
+.border-radius-bottom (@radius: 0 0 5px 5px) {
+    -webkit-border-radius: @radius;
+    -moz-border-radius: @radius;
+    -ms-border-radius: @radius;
+    -o-border-radius: @radius;
+    border-radius: @radius;
+}
+
+.calendar-box {
+    width: 218px;
+    background-color:#fff;
+    font: 80% "Helvetica", sans-serif;
+
+    a {
+        text-decoration:none;
+        color:##e78f08;
+    }
+
+    select {
+        &.calendar-month {width: 90px;}
+        &.calendar-year {width: 70px;}
+    }
+    .calendar-title {
+        text-align: center;
+        h2.calendar-month {
+            font-size: 16px;
+            font-weight: bold;
+        }
+    }
+    .calendar-cancel {
+        background:#EEE;
+        padding: 10px;
+        margin: 0 auto;
+        border-top: 1px solid #888;
+        .border-radius-bottom;
+        color:#FFF;
+        text-align: right;
+    }
+
+    .today {
+        a {
+            display: block;
+            background-color: #ffe9c6;
+        }
+    }
+
+
+
+    tr {
+        &.calendar-header {
+            td {
+                padding: 10px 0 5px;
+                font-size: 12px;
+                font-weight: bold;
+            }
+        }
+        td {
+            width: 11%;
+            text-align: center;
+            &.days {
+                background:#FFF;
+                padding: 4px 0;
+                a {
+                    margin: 0 5px;
+                }
+            }
+            &.selected {
+                background: #8DB6CD;
+                a {display: block;}
+            }
+        }
+        &.month-header {
+            background: #EEE;
+            th {
+                padding: 7px 0;
+                span, a {
+                    background: #AAA;
+                    padding: 0 5px;
+                    color: #FFF;
+                    font-size: 20px;
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,75 @@
+/*Mixins*/
+.calendar-box {
+  width: 218px;
+  background-color: #fff;
+  font: 80% "Helvetica", sans-serif;
+}
+.calendar-box a {
+  text-decoration: none;
+  color: ##e78f08;
+}
+.calendar-box select.calendar-month {
+  width: 90px;
+}
+.calendar-box select.calendar-year {
+  width: 70px;
+}
+.calendar-box .calendar-title {
+  text-align: center;
+}
+.calendar-box .calendar-title h2.calendar-month {
+  font-size: 16px;
+  font-weight: bold;
+}
+.calendar-box .calendar-cancel {
+  background: #EEE;
+  padding: 10px;
+  margin: 0 auto;
+  border-top: 1px solid #888;
+  -webkit-border-radius: 0 0 5px 5px;
+  -moz-border-radius: 0 0 5px 5px;
+  -ms-border-radius: 0 0 5px 5px;
+  -o-border-radius: 0 0 5px 5px;
+  border-radius: 0 0 5px 5px;
+  color: #FFF;
+  text-align: right;
+}
+.calendar-box .today a {
+  display: block;
+  background-color: #ffe9c6;
+}
+.calendar-box tr.calendar-header td {
+  padding: 10px 0 5px;
+  font-size: 12px;
+  font-weight: bold;
+}
+.calendar-box tr td {
+  width: 11%;
+  text-align: center;
+}
+.calendar-box tr td.days {
+  background: #FFF;
+  padding: 4px 0;
+}
+.calendar-box tr td.days a {
+  margin: 0 5px;
+}
+.calendar-box tr td.selected {
+  background: #8DB6CD;
+}
+.calendar-box tr td.selected a {
+  display: block;
+}
+.calendar-box tr.month-header {
+  background: #EEE;
+}
+.calendar-box tr.month-header th {
+  padding: 7px 0;
+}
+.calendar-box tr.month-header th span,
+.calendar-box tr.month-header th a {
+  background: #AAA;
+  padding: 0 5px;
+  color: #FFF;
+  font-size: 20px;
+}
