@@ -6,7 +6,7 @@
     window.Calendar = function(id) {
         var div = document.createElement('div');
         var selectedCallback = defaultSelectDate;
-        var linkedElement, selectedDate;
+        var linkedElement, selectedDate, minCalDate, maxCalDate;
         var events = {
             previousMonth: previousMonth
             , nextMonth: nextMonth
@@ -111,7 +111,10 @@
             month= parseInt(month, 10);
             day  = parseInt(day, 10);
             if (typeof minDate === 'string') {
-                minDate = new Date(minDate);
+                minCalDate = new Date(minDate);
+            }
+            else {
+                minCalDate = minDate;
             }
             //Display the table
             var next_month = month+1;
@@ -222,7 +225,7 @@
             hideCalendar();
         }
 
-        function updateCalendar(year, month, day, minDate) {
+        function updateCalendar(year, month, day, minDate, maxDate) {
             if (month > 11) {
                 month = 1;
                 year++;
@@ -244,15 +247,25 @@
         function handleEvents(e) {
             var target = e.target;
             var event = target.getAttribute('data-event');
-            events[event](target);
+            if (typeof events[event] === 'function') {
+                events[event](target);
+            }
         }
 
         function previousMonth() {
-            updateCalendar(selectedDate.year, selectedDate.month - 1, selectedDate.day);
+            updateCalendar(selectedDate.year
+                    , selectedDate.month - 1
+                    , selectedDate.day
+                    , minCalDate, maxCalDate
+                    );
         }
 
         function nextMonth() {
-            updateCalendar(selectedDate.year, selectedDate.month + 1, selectedDate.day);
+            updateCalendar(selectedDate.year
+                    , selectedDate.month + 1
+                    , selectedDate.day
+                    , minCalDate, maxCalDate
+                    );
         }
     };
 }());
