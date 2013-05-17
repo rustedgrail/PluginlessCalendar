@@ -169,7 +169,7 @@
 
             var days_in_this_month = month_days[month];
 
-            //Create the calender
+            //Create the calendar
             for(i=0;i<=5;i++) {
                 if(w >= days_in_this_month) { break; }
                 data.push("<tr>");

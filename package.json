@@ -1,15 +1,15 @@
 {
-    "name": "pluginfreecalender"
+    "name": "pluginfreecalendar"
     , "author": "David Newell"
-    , "version": "1.0.1"
+    , "version": "1.0.2"
     , "license": "MIT"
-    , "description": "A calender for the browser that does not require any plugins"
+    , "description": "A calendar for the browser that does not require any plugins"
     , "dependencies": { }
     , "devDependencies": { }
     , "repository": {
         "type": "git"
         , "url": "git@github.com:rustedgrail/PluginlessCalendar.git"
     }
-    , "keywords": ["calender", "browser", "no plugins", "plugin-free", "ender"]
+    , "keywords": ["calendar", "browser", "no plugins", "plugin-free", "ender"]
     , "ender": "./ender.js"
 }
