@@ -1,7 +1,6 @@
 (function() {
     var month_names = ["January","February","March","April","May","June","July","August","September","October","November","December"];
     var weekdays = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-    var month_days = [31,28,31,30,31,30,31,31,30,31,30,31];
 
     window.Calendar = function(id) {
         var div = document.createElement('div');
@@ -47,11 +46,13 @@
             existing_date.setMinutes(existing_date.getMinutes() + existing_date.getTimezoneOffset());
             var the_year = existing_date.getYear();
             if(the_year < 1900) the_year += 1900;
+
             selectedDate = {
                 year: the_year
                     , month: existing_date.getMonth()
                     , day: existing_date.getDate()
             };
+
             var calendarText = makeCalendar(the_year, existing_date.getMonth(), minDate, maxDate);
             div.innerHTML = calendarText;
             div.style.display = "block";
@@ -83,7 +84,7 @@
 
         function getStartingDate(startingDate, input) {
             if (startingDate) return startingDate;
-            if (input.value) {
+            if (input && input.value) {
                 var selected_date = new Date(input.value);
                 if(selectedDate.toString() !== 'Invalid Date') { //Valid date.
                     return selectedDate;
@@ -94,57 +95,28 @@
 
         function makeCalendar(year, month, minDate, maxDate) {
             var today = new Date();
-            var weekday, i, j, data = [];
+            var i, j, data = [];
             year = parseInt(year, 10);
             month= parseInt(month, 10);
-            if (typeof minDate === 'string') {
-                minCalDate = new Date(minDate);
-            }
-            else {
-                minCalDate = minDate;
-            }
-            //Display the table
-            var next_month = month+1;
-            var next_month_year = year;
-            if(next_month>=12) {
-                next_month = 0;
-                next_month_year++;
-            }
+            minCalDate = minDate;
 
-            var previous_month = month-1;
-            var previous_month_year = year;
-            if(previous_month< 0) {
-                previous_month = 11;
-                previous_month_year--;
-            }
+            var minYear = minDate ? minDate.getFullYear() : -1;
+            var minMonth = minDate ? minDate.getMonth() : -1;
+
+            var maxYear = maxDate ? maxDate.getFullYear() : 1e9;
+            var maxMonth = maxDate ? maxDate.getMonth() : 1e9;
+
+            var greaterThanMinMonth = year > minYear || (year == minYear && month > minMonth);
+            var lessThanMaxMonth = year < maxYear || (year == maxYear && month < maxMonth);
 
             visibleDate = {
                 year: year
                 , month: month
             };
 
-            var greaterThanMinMonth = minDate && (previous_month_year > minDate.getFullYear() ||
-                    (previous_month_year === minDate.getFullYear() &&
-                     previous_month >= minDate.getMonth()));
-
-            var lessThanMaxMonth = maxDate && (next_month_year < maxDate.getFullYear() ||
-                    (next_month_year === maxCalDate.getFullYear() &&
-                     next_month >= maxDate.getMonth()));
-
             data.push("<table class=calendar-box cellspacing=0>");
-            if (!minDate || greaterThanMinMonth) {
-                data.push("<tr class='month-header'><th><span class='left' data-event='previousMonth' title='"+month_names[previous_month]+" "+(previous_month_year)+"'>&#8249;</span></th>");
-            }
-            else {
-                data.push("<tr class='month-header'><th><span title='"+month_names[previous_month]+" "+(previous_month_year)+"'>&lsaquo;</span></th>");
-            }
-            data.push("<th colspan='5' class='calendar-title'><h2 name='calendar-month' class='calendar-month'>");
-            data.push(month_names[month] + " " + year);
-            data.push("</h2></th>");
-            data.push("<th><span class='right' data-event='nextMonth' title='"+month_names[next_month]+" "+(next_month_year)+"'>&rsaquo;</span></th></tr>");
-            data.push("<tr class='calendar-header'>");
-            for(weekday=0; weekday<7; weekday++) { data.push("<td>"+weekdays[weekday]+"</td>"); }
-            data.push("</tr>");
+            data.push(addMonthHeader(year, month, greaterThanMinMonth, lessThanMaxMonth));
+            data.push(addDaysOfWeek());
 
             //Get the first day of this month
             var first_day = new Date(year,month,1);
@@ -152,12 +124,8 @@
 
             var d = 1;
             var flag = 0;
+            var days_in_this_month = getDaysInMonth(year, month);
 
-            //Leap year support
-            if(year % 4 == 0) { month_days[1] = 29; }
-            else { month_days[1] = 28; }
-
-            var days_in_this_month = month_days[month];
 
             //Create the calendar
             for(i=0;i<=5;i++) {
@@ -200,6 +168,50 @@
             data.push("<div class='calendar-cancel' data-event=hideCalendar>Cancel</div>");
 
             return data.join('');
+        }
+
+        function addMonthHeader(year, month, greaterThanMinMonth, lessThanMaxMonth) {
+            var data = [];
+            //Display the table
+            data.push("<tr class='month-header'><th><span class='left'");
+            if (greaterThanMinMonth) {
+                data.push(" data-event='previousMonth'");
+            }
+            data.push(">&#8249;</span></th>");
+
+            data.push("<th colspan='5' class='calendar-title'><h2 name='calendar-month' class='calendar-month'>");
+            data.push(month_names[month] + " " + year);
+            data.push("</h2></th>");
+
+            data.push("<th><span class='right'");
+            if (lessThanMaxMonth) {
+                data.push(" data-event='nextMonth'");
+            }
+            data.push(">&rsaquo;</span>");
+            data.push('</th></tr>');
+
+            return data.join('');
+        }
+
+        function addDaysOfWeek() {
+            var weekday, data = [];
+            data.push("<tr class='calendar-header'>");
+            for(weekday=0; weekday<7; weekday++) { data.push("<td>"+weekdays[weekday]+"</td>"); }
+            data.push("</tr>");
+
+            return data.join('');
+        }
+
+        function getDaysInMonth(year, month) {
+            var month_days = [31,28,31,30,31,30,31,31,30,31,30,31];
+
+            var retVal = month_days[month];
+            if (month === 1 && ((year % 400 === 0) ||
+                        (year % 100 !== 0 && year % 4 === 0))) {
+                            return retVal + 1;
+                        }
+
+            return retVal;
         }
 
         function selectDate(target) {
