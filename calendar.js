@@ -6,7 +6,7 @@
     window.Calendar = function(id) {
         var div = document.createElement('div');
         var selectedCallback = defaultSelectDate;
-        var linkedElement, selectedDate, minCalDate, maxCalDate;
+        var linkedElement, selectedDate, minCalDate, maxCalDate, visibleDate;
         var events = {
             previousMonth: previousMonth
             , nextMonth: nextMonth
@@ -18,7 +18,12 @@
         div.className="calendar-box";
 
         document.body.insertBefore(div, null);
-        div.addEventListener('click', handleEvents);
+        if (div.addEventListener) {
+            div.addEventListener('click', handleEvents);
+        }
+        else {
+            div.attachEvent("onclick", handleEvents);
+        }
 
         return {
             showCalendar: showCalendar
@@ -32,36 +37,32 @@
             selectedCallback = callback;
         }
 
-        function showCalendar(input, minDate, maxDate) {
+        function showCalendar(input, startingDate, minDate, maxDate) {
             if (input) {
+                alignElement(input);
                 linkedElement = input;
-                var xy = getPosition(input);
-                var width = parseInt(getStyle(input,'width'), 10);
-                //Position the div in the correct location
-                div.style.left=(xy[0]+width+10)+"px";
-                div.style.top=xy[1]+"px";
-                var date_in_input = input.value;
             }
 
-            // Show the calendar with the date in the input as the selected date
-            var existing_date = new Date();
-            if(date_in_input) {
-                var selected_date = false;
-                var date_parts = date_in_input.split("-");
-                if(date_parts.length == 3) {
-                    date_parts[1]--; //Month starts with 0
-                    selected_date = new Date(date_parts[0], date_parts[1], date_parts[2]);
-                }
-                if(selected_date && !isNaN(selected_date.getYear())) { //Valid date.
-                    existing_date = selected_date;
-                }
-            }
-
+            var existing_date = getStartingDate(startingDate, input);
+            existing_date.setMinutes(existing_date.getMinutes() + existing_date.getTimezoneOffset());
             var the_year = existing_date.getYear();
             if(the_year < 1900) the_year += 1900;
-            var calendarText = makeCalendar(the_year, existing_date.getMonth(), existing_date.getDate(), minDate, maxDate);
+            selectedDate = {
+                year: the_year
+                    , month: existing_date.getMonth()
+                    , day: existing_date.getDate()
+            };
+            var calendarText = makeCalendar(the_year, existing_date.getMonth(), minDate, maxDate);
             div.innerHTML = calendarText;
             div.style.display = "block";
+        }
+
+        function alignElement(toElem) {
+            var xy = getPosition(toElem);
+            var width = parseInt(toElem.offsetWidth, 10);
+            //Position the div in the correct location
+            div.style.left=(xy[0]+width+10)+"px";
+            div.style.top=xy[1]+"px";
         }
 
         function getPosition(ele) {
@@ -77,39 +78,25 @@
                 offsetTop += document.body.topMargin;
             }
 
-            var xy = [x,y];
-            return xy;
+            return [x,y];
         }
 
-        function getStyle(ele, property){
-            var value;
-            if (ele.currentStyle) {
-                var alt_property_name = property.replace(/\-(\w)/g,
-                        function(m,c){
-                            return c.toUpperCase();
-                        }
-                        );//background-color becomes backgroundColor
-                value = ele.currentStyle[property]||ele.currentStyle[alt_property_name];
-
-            } else if (window.getComputedStyle) {
-                property = property.replace(/([A-Z])/g,"-$1").toLowerCase();//backgroundColor becomes background-color
-
-                value = document.defaultView.getComputedStyle(ele,null).getPropertyValue(property);
+        function getStartingDate(startingDate, input) {
+            if (startingDate) return startingDate;
+            if (input.value) {
+                var selected_date = new Date(input.value);
+                if(selectedDate.toString() !== 'Invalid Date') { //Valid date.
+                    return selectedDate;
+                }
             }
-
-            //Some properties are special cases
-            if(property === "opacity" && ele.filter) { value = (parseFloat( ele.filter.match(/opacity\=([^)]*)/)[1] ) / 100); }
-            else if(property === "width" && isNaN(value)) { value = ele.clientWidth || ele.offsetWidth; }
-            else if(property === "height" && isNaN(value)) { value = ele.clientHeight || ele.offsetHeight; }
-            return value;
+            return new Date();
         }
 
-        function makeCalendar(year, month, day, minDate, maxDate) {
+        function makeCalendar(year, month, minDate, maxDate) {
             var today = new Date();
             var weekday, i, j, data = [];
             year = parseInt(year, 10);
             month= parseInt(month, 10);
-            day  = parseInt(day, 10);
             if (typeof minDate === 'string') {
                 minCalDate = new Date(minDate);
             }
@@ -131,15 +118,18 @@
                 previous_month_year--;
             }
 
-            selectedDate = {
+            visibleDate = {
                 year: year
                 , month: month
-                , day: day
             };
 
             var greaterThanMinMonth = minDate && (previous_month_year > minDate.getFullYear() ||
                     (previous_month_year === minDate.getFullYear() &&
                      previous_month >= minDate.getMonth()));
+
+            var lessThanMaxMonth = maxDate && (next_month_year < maxDate.getFullYear() ||
+                    (next_month_year === maxCalDate.getFullYear() &&
+                     next_month >= maxDate.getMonth()));
 
             data.push("<table class=calendar-box cellspacing=0>");
             if (!minDate || greaterThanMinMonth) {
@@ -188,7 +178,7 @@
                         if(yea < 1900) yea += 1900;
 
                         if(yea == year && today.getMonth() == month && today.getDate() == d) class_name = " today";
-                        if(day == d) class_name += " selected";
+                        if(d == selectedDate.day && month == selectedDate.month && year == selectedDate.year) class_name += " selected";
 
                         class_name += " " + weekdays[j].toLowerCase();
 
@@ -213,8 +203,8 @@
         }
 
         function selectDate(target) {
-            selectedDate.day = target.getAttribute('data-date');
-            selectedCallback(selectedDate);
+            visibleDate.day = target.getAttribute('data-date');
+            selectedCallback(visibleDate);
         }
 
         // Called when the user clicks on a date in the calendar.
@@ -225,9 +215,9 @@
             hideCalendar();
         }
 
-        function updateCalendar(year, month, day, minDate, maxDate) {
+        function updateCalendar(year, month, minDate, maxDate) {
             if (month > 11) {
-                month = 1;
+                month = 0;
                 year++;
             }
 
@@ -235,7 +225,7 @@
                 month = 11;
                 year--;
             }
-            var calText = makeCalendar(year, month, day, minDate);
+            var calText = makeCalendar(year, month, minDate);
             div.innerHTML = calText;
         }
 
@@ -253,17 +243,15 @@
         }
 
         function previousMonth() {
-            updateCalendar(selectedDate.year
-                    , selectedDate.month - 1
-                    , selectedDate.day
+            updateCalendar(visibleDate.year
+                    , visibleDate.month - 1
                     , minCalDate, maxCalDate
                     );
         }
 
         function nextMonth() {
-            updateCalendar(selectedDate.year
-                    , selectedDate.month + 1
-                    , selectedDate.day
+            updateCalendar(visibleDate.year
+                    , visibleDate.month + 1
                     , minCalDate, maxCalDate
                     );
         }
