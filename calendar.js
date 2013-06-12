@@ -44,8 +44,7 @@
 
             var existing_date = getStartingDate(startingDate, input);
             existing_date.setMinutes(existing_date.getMinutes() + existing_date.getTimezoneOffset());
-            var the_year = existing_date.getYear();
-            if(the_year < 1900) the_year += 1900;
+            var the_year = existing_date.getFullYear();
 
             selectedDate = {
                 year: the_year
@@ -136,22 +135,19 @@
                     else if(j >= start_day && !flag) { flag=1; }//If the first day of this month has come, start the date writing
 
                     if(flag) {
-                        var w = d, mon = month+1;
+                        var w = d;
                         if(w < 10) { w = "0" + w; }
-                        if(mon < 10) { mon = "0" + mon; }
 
                         //Is it today?
                         var class_name = '';
-                        var yea = today.getYear();
-                        if(yea < 1900) yea += 1900;
 
-                        if(yea == year && today.getMonth() == month && today.getDate() == d) class_name = " today";
+                        if(today.getFullYear() == year && today.getMonth() == month && today.getDate() == d) class_name = " today";
                         if(d == selectedDate.day && month == selectedDate.month && year == selectedDate.year) class_name += " selected";
 
                         class_name += " " + weekdays[j].toLowerCase();
 
                         data.push("<td class='days"+class_name+"'>");
-                        if (!minDate || greaterThanMinMonth || w > minDate.getDate()) {
+                        if (greaterThanMinMonth || w > minDate.getDate()) {
                             data.push("<a data-event=selectDate data-date='" + w + "'>"+w+"</a></td>");
                         }
                         else {
